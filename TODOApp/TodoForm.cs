@@ -98,8 +98,6 @@ namespace TODOApp
             if (addTaskForm.ShowDialog() == DialogResult.OK)
             {
                 tasks.Add(newTask);
-                // Remove this line once 2 page task addition is setup
-                ResetTaskEntry();
                 RefreshTasks();
             }
         }
@@ -132,13 +130,6 @@ namespace TODOApp
 
         }
 
-        private void ResetTaskEntry()
-        {
-            titleTextbox.Text = "";
-            descriptionTextbox.Text = "";
-            dateTimePicker1.Value = DateTime.Now;
-        }
-
         private void OnTaskRowClicked(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
@@ -148,10 +139,6 @@ namespace TODOApp
                 {
                     return;
                 }
-
-                titleTextbox.Text = taskToUpdate.Title;
-                descriptionTextbox.Text = taskToUpdate.Description;
-                dateTimePicker1.Value = taskToUpdate.DueDate;
             }
         }
 
