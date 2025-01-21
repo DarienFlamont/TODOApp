@@ -118,27 +118,23 @@ namespace TODOApp
 
         private void RefreshTasks()
         {
-            if ((TaskFilter) filterComboBox.SelectedItem == TaskFilter.All)
+            var filteredTasks = new List<Task>();
+            switch((TaskFilter)filterComboBox.SelectedItem)
             {
-                bindingSource.DataSource = null;
-                bindingSource.DataSource = tasks;
-                return;
-            }
-
-            if ((TaskFilter) filterComboBox.SelectedItem == TaskFilter.Completed)
-            {
-                var filteredTasks = tasks.Where(t => t.IsCompleted).ToList();
-                bindingSource.DataSource = null;
-                bindingSource.DataSource = filteredTasks;
-                return;
-            }
-
-            if((TaskFilter) filterComboBox.SelectedItem == TaskFilter.Uncompleted)
-            {
-                var filteredTasks = tasks.Where(t => !t.IsCompleted).ToList();
-                bindingSource.DataSource = null;
-                bindingSource.DataSource = filteredTasks;
-                return;
+                case TaskFilter.All:
+                    bindingSource.DataSource = null;
+                    bindingSource.DataSource = tasks;
+                    break;
+                case TaskFilter.Completed:
+                    filteredTasks = tasks.Where(t => t.IsCompleted).ToList();
+                    bindingSource.DataSource = null;
+                    bindingSource.DataSource = filteredTasks;
+                    break;
+                case TaskFilter.Uncompleted:
+                    filteredTasks = tasks.Where(t => !t.IsCompleted).ToList();
+                    bindingSource.DataSource = null;
+                    bindingSource.DataSource = filteredTasks;
+                    break;
             }
         }
 
