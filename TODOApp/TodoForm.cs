@@ -22,10 +22,12 @@ namespace TODOApp
 
         public TodoForm()
         {
-            InitializeComponent();
-            InitializeFilter();
             tasks = new List<Task>();
             bindingSource = new BindingSource();
+
+            InitializeComponent();
+            InitializeFilter();
+            LoadTasksFromJSON();
 
             // Set up DataGridView
             tasksDataGridView.AutoGenerateColumns = false;
@@ -49,6 +51,17 @@ namespace TODOApp
         {
             filterComboBox.DataSource = Enum.GetValues(typeof(TaskFilter));
             filterComboBox.SelectedIndexChanged += (s,e) => RefreshTasks();
+        }
+
+        private void LoadTasksFromJSON()
+        {
+            tasks = JsonHelper.LoadTasks();
+            RefreshTasks();
+        }
+
+        private void SaveTasks()
+        {
+            JsonHelper.SaveTasks(tasks);
         }
 
         private void OnColumnHeaderClicked(object sender, DataGridViewCellMouseEventArgs e)
@@ -98,6 +111,7 @@ namespace TODOApp
             if (addTaskForm.ShowDialog() == DialogResult.OK)
             {
                 tasks.Add(newTask);
+                SaveTasks();
                 RefreshTasks();
             }
         }
@@ -126,8 +140,6 @@ namespace TODOApp
                 bindingSource.DataSource = filteredTasks;
                 return;
             }
-
-
         }
 
         private void OnTaskRowClicked(object sender, DataGridViewCellEventArgs e)
@@ -151,6 +163,7 @@ namespace TODOApp
                 if (e.ColumnIndex == 3)
                 {
                     task.IsCompleted = !task.IsCompleted;
+                    SaveTasks();
                     RefreshTasks();
                     return;
                 }
@@ -162,6 +175,7 @@ namespace TODOApp
             if (tasksDataGridView.CurrentRow != null)
             {
                 tasks.Remove(tasksDataGridView.CurrentRow.DataBoundItem as Task);
+                SaveTasks();
                 RefreshTasks();
             }
         }
@@ -174,6 +188,7 @@ namespace TODOApp
                 var editTaskForm = new AddTaskForm(taskToUpdate);
                 if (editTaskForm.ShowDialog() == DialogResult.OK)
                 {
+                    SaveTasks();
                     RefreshTasks();
                 }
             }
