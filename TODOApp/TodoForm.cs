@@ -16,6 +16,7 @@ namespace TODOApp
     public partial class TodoForm : Form
     {
         private List<Task> tasks;
+        private List<Task> filteredTasks;
         private BindingSource bindingSource;
         private bool sortAscendingTitle = true;
         private bool sortAscendingDueDate = true;
@@ -23,6 +24,7 @@ namespace TODOApp
         public TodoForm()
         {
             tasks = new List<Task>();
+            filteredTasks = new List<Task>();
             bindingSource = new BindingSource();
 
             InitializeComponent();
@@ -34,8 +36,6 @@ namespace TODOApp
             tasksDataGridView.DataSource = bindingSource;
 
             // Add Columns
-            // BindingList<T> doesnt allow sorting in the DataGridView so I need to either manually sort them or add this override found here:
-            // https://martinwilley.com/net/code/forms/sortablebindinglist.html
             tasksDataGridView.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Title", DataPropertyName = "Title", SortMode = DataGridViewColumnSortMode.Automatic });
             tasksDataGridView.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Description", DataPropertyName = "Description", SortMode = DataGridViewColumnSortMode.NotSortable });
             tasksDataGridView.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Due Date", DataPropertyName = "DueDate", SortMode = DataGridViewColumnSortMode.Automatic });
@@ -99,45 +99,6 @@ namespace TODOApp
             }
         }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void btnAdd_Click(object sender, EventArgs e)
-        {
-            var newTask = new Task("", "", DateTime.Now);
-            var addTaskForm = new AddTaskForm(newTask);
-            if (addTaskForm.ShowDialog() == DialogResult.OK)
-            {
-                tasks.Add(newTask);
-                SaveTasks();
-                RefreshTasks();
-            }
-        }
-
-        private void RefreshTasks()
-        {
-            var filteredTasks = new List<Task>();
-            switch((TaskFilter)filterComboBox.SelectedItem)
-            {
-                case TaskFilter.All:
-                    bindingSource.DataSource = null;
-                    bindingSource.DataSource = tasks;
-                    break;
-                case TaskFilter.Completed:
-                    filteredTasks = tasks.Where(t => t.IsCompleted).ToList();
-                    bindingSource.DataSource = null;
-                    bindingSource.DataSource = filteredTasks;
-                    break;
-                case TaskFilter.Uncompleted:
-                    filteredTasks = tasks.Where(t => !t.IsCompleted).ToList();
-                    bindingSource.DataSource = null;
-                    bindingSource.DataSource = filteredTasks;
-                    break;
-            }
-        }
-
         private void OnTaskRowClicked(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
@@ -150,8 +111,37 @@ namespace TODOApp
             }
         }
 
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void RefreshTasks()
+        {
+            switch((TaskFilter)filterComboBox.SelectedItem)
+            {
+                case TaskFilter.All:
+                    bindingSource.DataSource = null;
+                    bindingSource.DataSource = tasks;
+                    return;
+                case TaskFilter.Completed:
+                    filteredTasks = tasks.Where(t => t.IsCompleted).ToList();
+                    bindingSource.DataSource = null;
+                    bindingSource.DataSource = filteredTasks;
+                    return;
+                case TaskFilter.Uncompleted:
+                    filteredTasks = tasks.Where(t => !t.IsCompleted).ToList();
+                    bindingSource.DataSource = null;
+                    bindingSource.DataSource = filteredTasks;
+                    return;
+            }
+        }
+
         private void OnTaskDataViewContentClicked(object sender, DataGridViewCellEventArgs e)
         {
+            // Use the binding source as our task list.
+            // When using self.tasks with a filter the indices expect the original task list indicies not the filtered version.
+            List<Task> tasks = bindingSource.DataSource as List<Task>;
             if (e.RowIndex >= 0 && e.RowIndex < tasks.Count && e.ColumnIndex == 3)
             {
                 var task = tasks[e.RowIndex];
@@ -159,10 +149,22 @@ namespace TODOApp
                 if (e.ColumnIndex == 3)
                 {
                     task.IsCompleted = !task.IsCompleted;
-                    SaveTasks();
                     RefreshTasks();
+                    SaveTasks();
                     return;
                 }
+            }
+        }
+
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            var newTask = new Task("", "", DateTime.Now);
+            var addTaskForm = new AddTaskForm(newTask);
+            if (addTaskForm.ShowDialog() == DialogResult.OK)
+            {
+                tasks.Add(newTask);
+                RefreshTasks();
+                SaveTasks();
             }
         }
 
@@ -171,8 +173,8 @@ namespace TODOApp
             if (tasksDataGridView.CurrentRow != null)
             {
                 tasks.Remove(tasksDataGridView.CurrentRow.DataBoundItem as Task);
-                SaveTasks();
                 RefreshTasks();
+                SaveTasks();
             }
         }
 
@@ -184,8 +186,8 @@ namespace TODOApp
                 var editTaskForm = new AddTaskForm(taskToUpdate);
                 if (editTaskForm.ShowDialog() == DialogResult.OK)
                 {
-                    SaveTasks();
                     RefreshTasks();
+                    SaveTasks();
                 }
             }
         }
