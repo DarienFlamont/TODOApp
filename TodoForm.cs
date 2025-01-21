@@ -14,6 +14,8 @@ namespace TODOApp
     {
         private List<Task> tasks;
         private BindingSource bindingSource;
+        private bool sortAscendingTitle = true;
+        private bool sortAscendingDueDate = true;
 
         public TodoForm()
         {
@@ -33,10 +35,45 @@ namespace TODOApp
             tasksDataGridView.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Due Date", DataPropertyName = "DueDate", SortMode = DataGridViewColumnSortMode.Automatic });
             tasksDataGridView.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Completed", DataPropertyName = "IsCompleted", SortMode = DataGridViewColumnSortMode.NotSortable });
 
-            //CellContentClick only throws the event when the content such as a checkbox is clicked in a cell.  Not just a cell itself.
             tasksDataGridView.CellContentClick += OnTaskDataViewContentClicked;
             tasksDataGridView.CellClick += OnTaskRowClicked;
+            tasksDataGridView.ColumnHeaderMouseClick += OnColumnHeaderClicked;
             RefreshTasks();
+        }
+
+        private void OnColumnHeaderClicked(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            // This is the column that corresponds to our title column
+            if (e.ColumnIndex == 0) 
+            { 
+                if (sortAscendingTitle)
+                {
+                    tasks = tasks.OrderBy(t => t.Title).ToList();
+                }
+                else
+                {
+                    tasks = tasks.OrderByDescending(t => t.Title).ToList();
+                }
+
+                sortAscendingTitle = !sortAscendingTitle;
+                RefreshTasks();
+            }
+
+            // This is the column that corresponds to the DueDate column
+            if (e.ColumnIndex == 2)
+            {
+                if (sortAscendingDueDate)
+                {
+                    tasks = tasks.OrderBy(t => t.DueDate).ToList();
+                }
+                else
+                {
+                    tasks = tasks.OrderByDescending(t => t.DueDate).ToList();
+                }
+
+                sortAscendingDueDate = !sortAscendingDueDate;
+                RefreshTasks();
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -50,7 +87,8 @@ namespace TODOApp
             {
                 Title = titleTextbox.Text,
                 Description = descriptionTextbox.Text,
-                DueDate = dateTimePicker1.Value
+                DueDate = dateTimePicker1.Value,
+                IsCompleted = false
             };
 
             tasks.Add(task);
@@ -95,23 +133,10 @@ namespace TODOApp
                 // If we are selecting the checkbox column we complete the task
                 if (e.ColumnIndex == 3)
                 {
-                    // Make a pop-up window that confirms deletion
-                    task.IsCompleted = true;
-
-                    if (task.IsCompleted)
-                    {
-                        tasks.Remove(task);
-                        RefreshTasks();
-                    }
-
+                    task.IsCompleted = !task.IsCompleted;
+                    RefreshTasks();
                     return;
                 }
-
-                // If we are just selecting the task row we want to populate the text fields with its information for editing
-                // Since CellContentClick only works for objects within a cell need to use a different event for this.
-                titleTextbox.Text = task.Title;
-                descriptionTextbox.Text = task.Description;
-                dateTimePicker1.Value = task.DueDate;
             }
         }
 

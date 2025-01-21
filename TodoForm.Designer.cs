@@ -102,7 +102,6 @@
             this.tasksDataGridView.ReadOnly = true;
             this.tasksDataGridView.Size = new System.Drawing.Size(601, 249);
             this.tasksDataGridView.TabIndex = 7;
-            this.tasksDataGridView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.OnTaskDataViewContentClicked);
             // 
             // label1
             // 
