@@ -10,6 +10,13 @@ using System.Windows.Forms;
 
 namespace TODOApp
 {
+    public enum TaskFilter
+    {
+        All,
+        Completed,
+        Uncompleted
+    }
+
     public partial class TodoForm : Form
     {
         private List<Task> tasks;
@@ -20,6 +27,7 @@ namespace TODOApp
         public TodoForm()
         {
             InitializeComponent();
+            InitializeFilter();
             tasks = new List<Task>();
             bindingSource = new BindingSource();
 
@@ -39,6 +47,12 @@ namespace TODOApp
             tasksDataGridView.CellClick += OnTaskRowClicked;
             tasksDataGridView.ColumnHeaderMouseClick += OnColumnHeaderClicked;
             RefreshTasks();
+        }
+
+        private void InitializeFilter()
+        {
+            filterComboBox.DataSource = Enum.GetValues(typeof(TaskFilter));
+            filterComboBox.SelectedIndexChanged += (s,e) => RefreshTasks();
         }
 
         private void OnColumnHeaderClicked(object sender, DataGridViewCellMouseEventArgs e)
@@ -83,23 +97,43 @@ namespace TODOApp
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
-            var task = new Task
+            var newTask = new Task("", "", DateTime.Now);
+            var addTaskForm = new AddTaskForm(newTask);
+            if (addTaskForm.ShowDialog() == DialogResult.OK)
             {
-                Title = titleTextbox.Text,
-                Description = descriptionTextbox.Text,
-                DueDate = dateTimePicker1.Value,
-                IsCompleted = false
-            };
-
-            tasks.Add(task);
-            ResetTaskEntry();
-            RefreshTasks();
+                tasks.Add(newTask);
+                // Remove this line once 2 page task addition is setup
+                ResetTaskEntry();
+                RefreshTasks();
+            }
         }
 
         private void RefreshTasks()
         {
-            bindingSource.DataSource = null;
-            bindingSource.DataSource = tasks;
+            if ((TaskFilter) filterComboBox.SelectedItem == TaskFilter.All)
+            {
+                bindingSource.DataSource = null;
+                bindingSource.DataSource = tasks;
+                return;
+            }
+
+            if ((TaskFilter) filterComboBox.SelectedItem == TaskFilter.Completed)
+            {
+                var filteredTasks = tasks.Where(t => t.IsCompleted).ToList();
+                bindingSource.DataSource = null;
+                bindingSource.DataSource = filteredTasks;
+                return;
+            }
+
+            if((TaskFilter) filterComboBox.SelectedItem == TaskFilter.Uncompleted)
+            {
+                var filteredTasks = tasks.Where(t => !t.IsCompleted).ToList();
+                bindingSource.DataSource = null;
+                bindingSource.DataSource = filteredTasks;
+                return;
+            }
+
+
         }
 
         private void ResetTaskEntry()
@@ -154,10 +188,11 @@ namespace TODOApp
             if (tasksDataGridView.CurrentRow != null)
             {
                 var taskToUpdate = tasksDataGridView.CurrentRow.DataBoundItem as Task;
-                taskToUpdate.Title = titleTextbox.Text;
-                taskToUpdate.Description = descriptionTextbox.Text;
-                taskToUpdate.DueDate = dateTimePicker1.Value;
-                RefreshTasks();
+                var editTaskForm = new AddTaskForm(taskToUpdate);
+                if (editTaskForm.ShowDialog() == DialogResult.OK)
+                {
+                    RefreshTasks();
+                }
             }
         }
     }
