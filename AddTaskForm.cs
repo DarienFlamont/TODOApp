@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace TODOApp
@@ -16,6 +9,8 @@ namespace TODOApp
         public AddTaskForm(Task task)
         {
             InitializeComponent();
+            // If the task we pass in to this form is null we are creating a new task
+            //
             _task = task ?? new Task("", "", DateTime.Now);
             titleTextbox.Text = _task.Title;
             descriptionTextbox.Text = _task.Description;
