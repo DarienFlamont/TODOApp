@@ -17,7 +17,7 @@ namespace TODOApp
     {
         private List<Task> tasks;
         private List<Task> filteredTasks;
-        private BindingSource bindingSource;
+        private readonly BindingSource bindingSource;
         private bool sortAscendingTitle = true;
         private bool sortAscendingDueDate = true;
 
@@ -176,7 +176,7 @@ namespace TODOApp
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
-            var newTask = new Task("", "", DateTime.Now);
+            var newTask = new Task(String.Empty, String.Empty, DateTime.Now);
             var addTaskForm = new AddTaskForm(newTask);
             if (addTaskForm.ShowDialog() == DialogResult.OK)
             {
