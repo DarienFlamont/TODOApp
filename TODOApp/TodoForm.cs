@@ -36,9 +36,28 @@ namespace TODOApp
             tasksDataGridView.DataSource = bindingSource;
 
             // Add Columns
-            tasksDataGridView.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Title", DataPropertyName = "Title", SortMode = DataGridViewColumnSortMode.Automatic });
-            tasksDataGridView.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Description", DataPropertyName = "Description", SortMode = DataGridViewColumnSortMode.NotSortable });
-            tasksDataGridView.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Due Date", DataPropertyName = "DueDate", SortMode = DataGridViewColumnSortMode.Automatic });
+            // TODO: Columns are still not word wrapping properly.  Figure out the proper setup to word wrap.
+            tasksDataGridView.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Title",
+                DataPropertyName = "Title",
+                SortMode = DataGridViewColumnSortMode.Automatic,
+                DefaultCellStyle = { WrapMode = DataGridViewTriState.True }
+            });
+
+            tasksDataGridView.Columns.Add(new DataGridViewTextBoxColumn {
+                HeaderText = "Description", 
+                DataPropertyName = "Description",
+                SortMode = DataGridViewColumnSortMode.NotSortable,
+                DefaultCellStyle = { WrapMode = DataGridViewTriState.True } 
+            });
+
+            tasksDataGridView.Columns.Add(new DataGridViewTextBoxColumn {
+                HeaderText = "Due Date", DataPropertyName = "DueDate",
+                SortMode = DataGridViewColumnSortMode.Automatic ,
+                DefaultCellStyle = { WrapMode = DataGridViewTriState.True }
+            });
+
             tasksDataGridView.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Completed", DataPropertyName = "IsCompleted", SortMode = DataGridViewColumnSortMode.NotSortable });
 
             tasksDataGridView.CellContentClick += OnTaskDataViewContentClicked;
@@ -113,7 +132,6 @@ namespace TODOApp
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
         }
 
         private void RefreshTasks()
@@ -172,9 +190,14 @@ namespace TODOApp
         {
             if (tasksDataGridView.CurrentRow != null)
             {
-                tasks.Remove(tasksDataGridView.CurrentRow.DataBoundItem as Task);
-                RefreshTasks();
-                SaveTasks();
+                Task taskToRemove = tasksDataGridView.CurrentRow.DataBoundItem as Task;
+                var returnPrompt = MessageBox.Show($"Are you sure you want to delete the task titled: {taskToRemove.Title}?", "Confirm Task Deletion", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+                if (returnPrompt == DialogResult.OK)
+                {
+                    tasks.Remove(taskToRemove);
+                    RefreshTasks();
+                    SaveTasks();
+                }
             }
         }
 

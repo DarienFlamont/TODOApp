@@ -78,7 +78,7 @@
     <Compile Include="AddTaskForm.Designer.cs">
       <DependentUpon>AddTaskForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="DatabaseHelper.cs" />
+    <Compile Include="JsonHelper.cs" />
     <Compile Include="Task.cs" />
     <Compile Include="TodoForm.cs">
       <SubType>Form</SubType>
