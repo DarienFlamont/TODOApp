@@ -1,35 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace TODOApp
 {
+    public enum TaskFilter
+    {
+        All,
+        Completed,
+        Uncompleted
+    }
+
     public partial class TodoForm : Form
     {
         private List<Task> tasks;
+        private List<Task> filteredTasks;
         private BindingSource bindingSource;
         private bool sortAscendingTitle = true;
         private bool sortAscendingDueDate = true;
 
         public TodoForm()
         {
-            InitializeComponent();
             tasks = new List<Task>();
+            filteredTasks = new List<Task>();
             bindingSource = new BindingSource();
+
+            InitializeComponent();
+            InitializeFilter();
+            LoadTasksFromJSON();
 
             // Set up DataGridView
             tasksDataGridView.AutoGenerateColumns = false;
             tasksDataGridView.DataSource = bindingSource;
 
             // Add Columns
-            // BindingList<T> doesnt allow sorting in the DataGridView so I need to either manually sort them or add this override found here:
-            // https://martinwilley.com/net/code/forms/sortablebindinglist.html
             tasksDataGridView.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Title", DataPropertyName = "Title", SortMode = DataGridViewColumnSortMode.Automatic });
             tasksDataGridView.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Description", DataPropertyName = "Description", SortMode = DataGridViewColumnSortMode.NotSortable });
             tasksDataGridView.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Due Date", DataPropertyName = "DueDate", SortMode = DataGridViewColumnSortMode.Automatic });
@@ -39,6 +45,23 @@ namespace TODOApp
             tasksDataGridView.CellClick += OnTaskRowClicked;
             tasksDataGridView.ColumnHeaderMouseClick += OnColumnHeaderClicked;
             RefreshTasks();
+        }
+
+        private void InitializeFilter()
+        {
+            filterComboBox.DataSource = Enum.GetValues(typeof(TaskFilter));
+            filterComboBox.SelectedIndexChanged += (s,e) => RefreshTasks();
+        }
+
+        private void LoadTasksFromJSON()
+        {
+            tasks = JsonHelper.LoadTasks();
+            RefreshTasks();
+        }
+
+        private void SaveTasks()
+        {
+            JsonHelper.SaveTasks(tasks);
         }
 
         private void OnColumnHeaderClicked(object sender, DataGridViewCellMouseEventArgs e)
@@ -76,39 +99,6 @@ namespace TODOApp
             }
         }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void btnAdd_Click(object sender, EventArgs e)
-        {
-            var task = new Task
-            {
-                Title = titleTextbox.Text,
-                Description = descriptionTextbox.Text,
-                DueDate = dateTimePicker1.Value,
-                IsCompleted = false
-            };
-
-            tasks.Add(task);
-            ResetTaskEntry();
-            RefreshTasks();
-        }
-
-        private void RefreshTasks()
-        {
-            bindingSource.DataSource = null;
-            bindingSource.DataSource = tasks;
-        }
-
-        private void ResetTaskEntry()
-        {
-            titleTextbox.Text = "";
-            descriptionTextbox.Text = "";
-            dateTimePicker1.Value = DateTime.Now;
-        }
-
         private void OnTaskRowClicked(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
@@ -118,15 +108,40 @@ namespace TODOApp
                 {
                     return;
                 }
+            }
+        }
 
-                titleTextbox.Text = taskToUpdate.Title;
-                descriptionTextbox.Text = taskToUpdate.Description;
-                dateTimePicker1.Value = taskToUpdate.DueDate;
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void RefreshTasks()
+        {
+            switch((TaskFilter)filterComboBox.SelectedItem)
+            {
+                case TaskFilter.All:
+                    bindingSource.DataSource = null;
+                    bindingSource.DataSource = tasks;
+                    return;
+                case TaskFilter.Completed:
+                    filteredTasks = tasks.Where(t => t.IsCompleted).ToList();
+                    bindingSource.DataSource = null;
+                    bindingSource.DataSource = filteredTasks;
+                    return;
+                case TaskFilter.Uncompleted:
+                    filteredTasks = tasks.Where(t => !t.IsCompleted).ToList();
+                    bindingSource.DataSource = null;
+                    bindingSource.DataSource = filteredTasks;
+                    return;
             }
         }
 
         private void OnTaskDataViewContentClicked(object sender, DataGridViewCellEventArgs e)
         {
+            // Use the binding source as our task list.
+            // When using self.tasks with a filter the indices expect the original task list indicies not the filtered version.
+            List<Task> tasks = bindingSource.DataSource as List<Task>;
             if (e.RowIndex >= 0 && e.RowIndex < tasks.Count && e.ColumnIndex == 3)
             {
                 var task = tasks[e.RowIndex];
@@ -135,8 +150,21 @@ namespace TODOApp
                 {
                     task.IsCompleted = !task.IsCompleted;
                     RefreshTasks();
+                    SaveTasks();
                     return;
                 }
+            }
+        }
+
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            var newTask = new Task("", "", DateTime.Now);
+            var addTaskForm = new AddTaskForm(newTask);
+            if (addTaskForm.ShowDialog() == DialogResult.OK)
+            {
+                tasks.Add(newTask);
+                RefreshTasks();
+                SaveTasks();
             }
         }
 
@@ -146,6 +174,7 @@ namespace TODOApp
             {
                 tasks.Remove(tasksDataGridView.CurrentRow.DataBoundItem as Task);
                 RefreshTasks();
+                SaveTasks();
             }
         }
 
@@ -154,10 +183,12 @@ namespace TODOApp
             if (tasksDataGridView.CurrentRow != null)
             {
                 var taskToUpdate = tasksDataGridView.CurrentRow.DataBoundItem as Task;
-                taskToUpdate.Title = titleTextbox.Text;
-                taskToUpdate.Description = descriptionTextbox.Text;
-                taskToUpdate.DueDate = dateTimePicker1.Value;
-                RefreshTasks();
+                var editTaskForm = new AddTaskForm(taskToUpdate);
+                if (editTaskForm.ShowDialog() == DialogResult.OK)
+                {
+                    RefreshTasks();
+                    SaveTasks();
+                }
             }
         }
     }
