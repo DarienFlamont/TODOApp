@@ -1,5 +1,9 @@
-TODO app written in C# using Windows Forms.
-Dependencies: Newtonsoft.Json 13
+# TODO app written in C# using Windows Forms.
+
+## Dependencies:
+**Newtonsoft.Json 13**
+
+**MSTest** for Unit Testing
 
 To run the application open the project in Visual Studio or your favourite IDE.
 Set the build properties to run the TODOApp project.
