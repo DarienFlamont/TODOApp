@@ -40,9 +40,8 @@
             // titleTextbox
             // 
             this.titleTextbox.Location = new System.Drawing.Point(203, 60);
-            this.titleTextbox.Multiline = true;
             this.titleTextbox.Name = "titleTextbox";
-            this.titleTextbox.Size = new System.Drawing.Size(160, 27);
+            this.titleTextbox.Size = new System.Drawing.Size(160, 20);
             this.titleTextbox.TabIndex = 0;
             // 
             // descriptionTextbox
