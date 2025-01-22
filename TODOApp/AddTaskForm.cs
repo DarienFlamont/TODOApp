@@ -11,7 +11,7 @@ namespace TODOApp
             InitializeComponent();
             // If the task we pass in to this form is null we are creating a new task
             //
-            _task = task ?? new Task("", "", DateTime.Now);
+            _task = task ?? new Task(String.Empty, String.Empty, DateTime.Now);
             titleTextbox.Text = _task.Title;
             descriptionTextbox.Text = _task.Description;
             dateTimePicker1.Value = _task.DueDate;
